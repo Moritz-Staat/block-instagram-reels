@@ -1,5 +1,7 @@
 # block-instagram-reels
 
+[![CI](https://github.com/Moritz-Staat/block-instagram-reels/actions/workflows/ci.yml/badge.svg)](https://github.com/Moritz-Staat/block-instagram-reels/actions/workflows/ci.yml)
+
 A private, sideload-only Android app that puts a **daily time budget** on short-video surfaces
 inside other apps instead of blocking them outright.
 
