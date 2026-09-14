@@ -118,7 +118,6 @@ val verifyAdrIndex by tasks.registering(VerifyAdrIndexTask::class) {
     adrDirectory.set(layout.projectDirectory.dir("docs/adr"))
 }
 
-
 // Enforces the single most important rule in the codebase (AGENTS.md): the classes carrying the
 // real logic must not touch the Android framework, because that is what keeps them unit-testable
 // without Robolectric, an emulator or a device. Review is not a reliable gate for this - one

@@ -77,8 +77,11 @@ Refs #17
 ## Before you push
 
 ```bash
-./gradlew ktlintCheck detekt lint testDebugUnitTest assembleDebug
+./gradlew staticAnalysis testDebugUnitTest assembleDebug
 ```
+
+`staticAnalysis` is ktlint, detekt, Android Lint, the ADR index check and the pure-core check —
+one entry point, so this and CI cannot drift into checking different things.
 
 All of it green. CI runs the same thing, and `main` is the branch everything else builds on — a
 red `main` blocks every other issue.
@@ -86,9 +89,11 @@ red `main` blocks every other issue.
 ## Code conventions
 
 - Kotlin, explicit visibility on public API, no wildcard imports.
-- **`ScreenMatcher`, `BudgetTracker` and `DayBoundary` must not import anything from `android.*`.**
-  This is enforced by review and is the single most important rule in the codebase — it is what
-  keeps the core testable. If you need a `Context` in one of them, your design is wrong.
+- **`ScreenMatcher`, `NodeSnapshot`, `BudgetTracker` and `DayBoundary` must not import anything
+  from `android.*` or `androidx.*`.** This is the single most important rule in the codebase — it
+  is what keeps the core testable. If you need a `Context` in one of them, your design is wrong.
+  Enforced by `./gradlew verifyPureCore`, which runs as part of `staticAnalysis` and in CI. When
+  you add a class to the pure core, add it to `pureFiles` in the root build script.
 - No `System.currentTimeMillis()` in testable logic. Inject a `Clock` or a `TimeSource`.
 - Coroutines: structured concurrency only, no `GlobalScope`. The service owns its scope and
   cancels it in `onDestroy`.
