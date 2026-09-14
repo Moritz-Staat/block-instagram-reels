@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pre-Android-12 equivalent of data_extraction_rules.xml. minSdk is 30, so both are needed:
+  this one applies on API 30-31, the other from API 31 onwards.
+
+  Nothing this app stores may leave the device (R7).
+-->
+<full-backup-content>
+    <exclude domain="root" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="external" path="." />
+</full-backup-content>

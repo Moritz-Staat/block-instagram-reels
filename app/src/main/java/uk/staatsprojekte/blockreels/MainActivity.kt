@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Clock
@@ -48,15 +49,15 @@ private fun PlaceholderContent(now: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier.padding(24.dp)) {
         Text(
             text = "Block Reels",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "Project skeleton. No blocking yet.",
-            style = MaterialTheme.typography.bodyMedium,
+            text = stringResource(R.string.placeholder_body),
+            style = MaterialTheme.typography.bodyMedium
         )
         Text(
             text = "Injected clock says: $now",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }

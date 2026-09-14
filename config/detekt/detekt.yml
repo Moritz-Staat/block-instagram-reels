@@ -1,0 +1,63 @@
+# Project detekt configuration.
+#
+# buildUponDefaultConfig = true, so this file only records DEVIATIONS from detekt's defaults.
+# Every entry below must say why it deviates - an undocumented relaxation is how a quality gate
+# quietly stops meaning anything.
+#
+# There is no baseline file. The project started at zero violations and stays there.
+
+build:
+  maxIssues: 0
+
+coroutines:
+  # Enabled (off by default). GlobalScope work outlives the component that started it, and this
+  # app's only long-lived component is the AccessibilityService, which owns its own scope and
+  # cancels it in onDestroy. AGENTS.md forbids GlobalScope; this is what enforces it.
+  GlobalCoroutineUsage:
+    active: true
+
+complexity:
+  LongParameterList:
+    # Compose functions legitimately take many parameters, and the alternative - bundling them
+    # into a parameter object - defeats skippability. Constructors stay at the default.
+    functionThreshold: 8
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    # A Compose file is naturally a collection of small functions.
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    ignoreAnnotatedFunctions: ['Composable']
+
+style:
+  MagicNumber:
+    # Numbers in Compose layout code (padding, weights, sizes) are not magic in any useful sense,
+    # and extracting each one to a named constant makes the layout harder to read, not easier.
+    # Everything with actual meaning - throttle intervals, grace periods, budget limits - lives in
+    # named constants because AGENTS.md requires it, not because detekt catches it.
+    ignoreAnnotated: ['Composable']
+  # The project uses explicit API declarations in production code; see AGENTS.md.
+  MaxLineLength:
+    maxLineLength: 120
+  ForbiddenComment:
+    # TODOs are allowed only when they reference an issue number, which is the convention for
+    # needs-device placeholders. A bare TODO is still a violation.
+    comments:
+      - reason: 'A TODO must reference the issue that will resolve it, e.g. TODO(#13).'
+        value: 'TODO:'
+      - reason: 'Use TODO(#N) instead of FIXME so the work is tracked.'
+        value: 'FIXME:'
+
+naming:
+  FunctionNaming:
+    # Composable functions are PascalCase by convention.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    # Compose previews and private file-level constants.
+    constantPattern: '[A-Z][_A-Z0-9]*'
+
+exceptions:
+  TooGenericExceptionCaught:
+    # The overlay layer deliberately catches broadly: an exception escaping into
+    # onAccessibilityEvent kills the service, which is a silent total failure. Those call sites
+    # are narrow and commented. Reviewed case by case rather than blanket-disabled.
+    active: true

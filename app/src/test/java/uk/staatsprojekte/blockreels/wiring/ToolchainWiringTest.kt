@@ -5,6 +5,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import java.io.File
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -18,10 +22,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.io.File
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneOffset
 
 /**
  * Proves each part of the toolchain is actually wired up, not merely declared in the build script.
@@ -59,7 +59,7 @@ class ToolchainWiringTest {
         val json = Json { ignoreUnknownKeys = true }
         val decoded = json.decodeFromString(
             Target.serializer(),
-            """{"id":"instagram_reels","budgetMinutes":5,"somethingAddedLater":true}""",
+            """{"id":"instagram_reels","budgetMinutes":5,"somethingAddedLater":true}"""
         )
 
         assertThat(decoded.id).isEqualTo("instagram_reels")
@@ -101,7 +101,7 @@ class ToolchainWiringTest {
 
         try {
             val response = OkHttpClient().newCall(
-                Request.Builder().url(server.url("/rules.json")).build(),
+                Request.Builder().url(server.url("/rules.json")).build()
             ).execute()
 
             response.use {

@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -35,7 +37,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
+                "proguard-rules.pro"
             )
             // Signing config arrives with the release-signing issue. Until then a release
             // build produces an unsigned APK, which is fine for verifying the build itself.
@@ -45,6 +47,31 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    lint {
+        // A warning nobody has to fix is a warning nobody reads. Everything is an error, and the
+        // build stops. Anything genuinely not applicable goes in `disable` below with a reason.
+        warningsAsErrors = true
+        abortOnError = true
+        checkDependencies = true
+        checkReleaseBuilds = true
+        htmlReport = true
+        xmlReport = true
+        sarifReport = false
+        disable += setOf(
+            // The placeholder launcher icon is a vector, replaced when the app gets a real
+            // identity. Re-enable once that happens.
+            "MissingApplicationIcon",
+            // Dependency freshness is tracked by issue #51, not by a permanently red gate.
+            // Nine libraries are deliberately pinned below their latest release because the
+            // newer ones require AGP 9 and compileSdk 37; each pin is explained in
+            // gradle/libs.versions.toml. Leaving these on would mean 18 errors that are all
+            // expected, which trains you to ignore lint output.
+            "GradleDependency",
+            "NewerVersionAvailable",
+            "AndroidGradlePluginVersion"
+        )
     }
 
     testOptions {
@@ -58,8 +85,40 @@ android {
         resources.excludes += setOf(
             "META-INF/LICENSE.md",
             "META-INF/LICENSE-notice.md",
-            "META-INF/{AL2.0,LGPL2.1}",
+            "META-INF/{AL2.0,LGPL2.1}"
         )
+    }
+}
+
+ktlint {
+    version.set(libs.versions.ktlint)
+    android.set(true)
+    ignoreFailures.set(false)
+    filter {
+        // Generated sources (Hilt, KSP, R) are not ours to format.
+        val generated = layout.buildDirectory.get().asFile.toPath()
+        exclude { it.file.toPath().startsWith(generated) }
+    }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+    ignoreFailures = false
+    // Android projects keep Kotlin under src/*/java, but detekt only looks in src/*/kotlin by
+    // default. Without this it analyses zero files and reports success - a quality gate that
+    // passes because it checked nothing. Verified by the file count in build/reports/detekt.
+    source.setFrom(
+        files("src/main/java", "src/test/java", "src/androidTest/java")
+    )
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        sarif.required.set(false)
+        md.required.set(false)
     }
 }
 
