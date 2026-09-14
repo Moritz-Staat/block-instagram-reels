@@ -4,16 +4,24 @@ Read this before touching anything. It is short on purpose.
 
 ## Ground rules
 
-1. **One issue per pull request.** Never bundle. If you notice something else that needs fixing,
-   open an issue for it and carry on with yours.
+1. **One issue per commit.** Never bundle. If you notice something else that needs fixing, open an
+   issue for it and carry on with yours.
+
+   Small and medium issues go **straight to `main`** as a single Conventional Commit, with the
+   acceptance-criteria record posted as a comment on the issue. Open a pull request instead when
+   the change is large, touches the architecture, or is one you want reviewed before it lands —
+   the accessibility service, the overlay, the budget engine and anything carrying an ADR. Use
+   [the PR template](.github/pull_request_template.md) when you do; when you do not, the issue
+   comment carries exactly the same content.
 2. **The issue's acceptance criteria are the definition of done.** Every checkbox must be ticked
-   and provably true before you open the PR. If a criterion turns out to be wrong or impossible,
-   say so in the PR and in the issue — do not quietly reinterpret it.
+   and provably true before you push. **Never tick a box you did not actually verify** — an
+   unverified tick is worse than an open one, because it ends the conversation. If a criterion is
+   blocked, wrong or impossible, leave it unticked, say why, and leave the issue open.
 3. **Do not exceed the issue's scope.** Each issue has an explicit *Out of scope* section. Respect
    it even when the extra work looks like five more minutes.
 4. **Write an ADR before reversing a decision.** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md),
    [`docs/RULES_FORMAT.md`](docs/RULES_FORMAT.md) and [`docs/adr/`](docs/adr/) are binding. If one
-   of them blocks you, the ADR is part of your PR — see [the ADR process](docs/adr/README.md). A
+   of them blocks you, the ADR ships with the change — see [the ADR process](docs/adr/README.md). A
    silent deviation is a defect, even if the code is better.
 
 ## `needs-device` issues — read this twice
@@ -30,11 +38,11 @@ What to deliver instead:
 - The complete implementation around the unknown value, working and tested against fixtures.
 - The value itself left as a clearly marked placeholder (`confidence` lowered, `"unverified"` noted
   in `rules.json`, a `TODO` referencing the issue number).
-- A **step-by-step instruction block in the PR description** telling the repository owner exactly
+- A **step-by-step instruction block** on the issue telling the repository owner exactly
   what to run and what to report back — concrete `adb` commands, which screens to navigate to,
   which output you need. Reference [`docs/FINDING_SELECTORS.md`](docs/FINDING_SELECTORS.md) rather
   than restating it.
-- The issue stays **open** until the real value lands. Say this in the PR.
+- The issue stays **open** until the real value lands. Say so explicitly; never close it yourself.
 
 ## Branches and commits
 
@@ -61,18 +69,19 @@ Refs #17
 
 - Types in use: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `build`, `ci`.
 - Scopes mirror the packages: `service`, `rules`, `budget`, `ui`, `di`, `build`.
-- Reference the issue with `Refs #N` in the body. Let the **PR** close the issue
-  (`Closes #N`), not the commit — unless the issue is `needs-device`, in which case nothing
-  closes it automatically.
+- Reference the issue with `Refs #N` in the body, never `Closes #N`. Close the issue by hand
+  after posting the acceptance-criteria record, so nothing closes on a criterion you did not
+  verify. A `needs-device` issue is never closed automatically.
 - Do not add `Co-Authored-By` trailers or tool signatures to commits or PR descriptions.
 
-## Before you open a PR
+## Before you push
 
 ```bash
 ./gradlew ktlintCheck detekt lint testDebugUnitTest assembleDebug
 ```
 
-All of it green. CI runs the same thing, so a red PR just wastes a round trip.
+All of it green. CI runs the same thing, and `main` is the branch everything else builds on — a
+red `main` blocks every other issue.
 
 ## Code conventions
 
@@ -91,7 +100,7 @@ All of it green. CI runs the same thing, so a red PR just wastes a round trip.
 
 ## Tests
 
-- New pure logic ships with unit tests in the same PR. This is not negotiable for
+- New pure logic ships with unit tests in the same commit. This is not negotiable for
   `ScreenMatcher`, `BudgetTracker`, `DayBoundary` and `RuleRepository`.
 - JUnit5 + Turbine. Robolectric only where a `Context` is genuinely unavoidable.
 - `ScreenMatcher` tests run against recorded fixtures in `app/src/test/resources/fixtures/`.
