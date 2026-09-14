@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.BlockReels" parent="@android:style/Theme.DeviceDefault.DayNight" />
+    <!--
+      Minimal platform theme. Compose draws its own Material 3 surfaces, so this only has to
+      provide a window without a system action bar. The real Material 3 colour scheme, typography
+      and dark-mode handling arrive with the theming issue.
+    -->
+    <style name="Theme.BlockReels" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>
