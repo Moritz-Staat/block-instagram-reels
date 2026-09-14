@@ -11,6 +11,4 @@ import dagger.hilt.android.HiltAndroidApp
  * `docs/adr/0003-no-foreground-service.md`.
  */
 @HiltAndroidApp
-class BlockReelsApplication : Application() {
-      val badlyIndented  =  1
-}
+class BlockReelsApplication : Application()
