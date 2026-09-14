@@ -17,8 +17,10 @@ stays fully usable** — feed, DMs, search, subscriptions, normal videos.
 Detection happens through an `AccessibilityService` reading the **view hierarchy**. No screenshots,
 no OCR, no pixel matching.
 
-> **Status:** planning. There is no app code in this repository yet — only the architecture,
-> the rule format and the issue backlog. See the [milestones](../../milestones).
+> **Status:** M0 done — the project builds, the static-analysis and CI gates are in place, and the
+> dependency stack is wired up and covered by tests. **Nothing is blocked yet:** there is no
+> accessibility service, no budget engine and no UI. Detection lands in M1, blocking in M2. See the
+> [milestones](../../milestones).
 
 ## Core requirements
 
@@ -61,7 +63,8 @@ its own — see [ADR-0001](docs/adr/0001-accessibility-service-approach.md)).
 
 ## Install
 
-There is no release yet. Once `M6` is done:
+**There is no release yet, and installing today would get you an app that does nothing.** The
+instructions below are what M6 delivers.
 
 1. Download the signed APK from the [releases page](../../releases).
 2. Install it (`adb install -r app-release.apk`, or open the file on the device).
@@ -71,6 +74,32 @@ There is no release yet. Once `M6` is done:
      The onboarding explains this step by step.
    - **Display over other apps** (`SYSTEM_ALERT_WINDOW`) — for the blocking overlay.
    - **Battery optimisation exemption** — so the OEM does not kill the service.
+
+## Build it yourself
+
+Requires **JDK 21** and an Android SDK with `platforms;android-36` and `build-tools;36.0.0`.
+Point `local.properties` at your SDK (`sdk.dir=C\:/path/to/Android/sdk` — the drive-letter colon
+must be escaped on Windows), then:
+
+```bash
+./gradlew assembleDebug                                   # app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The debug build installs as `uk.staatsprojekte.blockreels.debug`, so it can sit alongside a release
+install.
+
+Before pushing anything, run what CI runs:
+
+```bash
+./gradlew staticAnalysis testDebugUnitTest assembleDebug
+```
+
+`staticAnalysis` is ktlint, detekt, Android Lint, the ADR index check and the pure-core check. All
+of them fail the build rather than warn; there is no baseline file anywhere. See
+[AGENTS.md](AGENTS.md).
+
+A debug APK is also attached to every green CI run, if you want one without a local toolchain.
 
 ## Disclaimer
 
@@ -88,8 +117,8 @@ and its only network call is fetching `rules.json`. Do not install it if you are
 read the source and verify that yourself.
 
 Layout changes on the target apps' side will break detection sooner or later. That is expected —
-see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) (arrives in M6) and the
-[selector drift issue template](.github/ISSUE_TEMPLATE/selector_drift.md).
+see the [selector drift issue template](.github/ISSUE_TEMPLATE/selector_drift.md), and
+`docs/TROUBLESHOOTING.md` once M6 adds it.
 
 ## Licence
 

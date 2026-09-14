@@ -111,8 +111,7 @@ red `main` blocks every other issue.
 - `ScreenMatcher` tests run against recorded fixtures in `app/src/test/resources/fixtures/`.
   Scrub personal content out of any dump before committing it.
 - Anything that can only be checked on a device goes into
-  [`docs/TEST_CHECKLIST.md`](docs/TEST_CHECKLIST.md) instead of being faked in an instrumented
-  test.
+  `docs/TEST_CHECKLIST.md` (added in M6) instead of being faked in an instrumented test.
 
 ## Secrets
 
