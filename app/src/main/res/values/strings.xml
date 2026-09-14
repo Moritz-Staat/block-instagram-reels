@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Block Reels</string>
+    <string name="placeholder_body">Project skeleton. No blocking yet.</string>
+</resources>
