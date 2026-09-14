@@ -19,6 +19,7 @@ anything you could reverse in an afternoon.
 | [0001](0001-accessibility-service-approach.md) | Detect short-video surfaces via an AccessibilityService | Accepted |
 | [0002](0002-datastore-over-room.md) | DataStore instead of Room for persistence | Accepted |
 | [0003](0003-no-foreground-service.md) | No foreground service alongside the AccessibilityService | Accepted |
+| [0004](0004-stay-on-agp-8-for-now.md) | Stay on AGP 8 and compileSdk 36 for now | Accepted |
 
 ## Process
 
