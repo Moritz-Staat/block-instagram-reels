@@ -1,0 +1,22 @@
+# Normalise everything to LF in the repository. Without this, a Windows checkout with
+# core.autocrlf=true stores CRLF for text files, and a CRLF `gradlew` fails on the Linux CI
+# runner with "bad interpreter".
+* text=auto eol=lf
+
+# The Gradle wrapper script is executed by /bin/sh on CI - it must stay LF.
+gradlew text eol=lf
+
+# Windows batch files must stay CRLF or cmd.exe mis-parses them.
+*.bat text eol=crlf
+
+# Binaries: never touch.
+*.jar binary
+*.apk binary
+*.aab binary
+*.keystore binary
+*.jks binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ttf binary
+*.otf binary
