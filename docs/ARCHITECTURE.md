@@ -19,34 +19,74 @@ Everything framework-near is a thin shell around them. `ScreenMatcher` must not 
 injected as a `Clock`/`TimeSource`. This is what makes the whole core unit-testable without
 Robolectric, an emulator or a device.
 
+**This is enforced, not just asserted.** `./gradlew verifyPureCore`, part of `staticAnalysis` and
+therefore of CI, fails if `ScreenMatcher`, `NodeSnapshot`, `BudgetTracker` or `DayBoundary` import
+anything from `android.*` or `androidx.*`:
+
+```
+> The pure core must not depend on the Android framework:
+    - budget/DayBoundary.kt:3  import android.content.Context
+```
+
+Review is not a reliable gate for this — one convenient `import android.content.Context` is very
+easy to wave through, and by the time it matters the class needs a `Context` in twelve places. The
+task reports how many files it checked, so "passes because the files do not exist yet" stays
+visible rather than silent. When a class is added to the pure core, add it to `pureFiles` in the
+root build script.
+
+`java.time` is deliberately allowed: it is the JDK, not the Android framework, and it is
+Robolectric-free.
+
 ## Module layout
 
+One Gradle module, `:app`, `applicationId` and `namespace` both
+`uk.staatsprojekte.blockreels`. Sources live under `app/src/main/java/uk/staatsprojekte/blockreels/`
+— Android convention keeps Kotlin in `java/`, which matters more than it looks: detekt only scans
+`src/*/kotlin` by default, so its source set is configured explicitly in `app/build.gradle.kts`.
+
+Packages below are relative to `uk.staatsprojekte.blockreels`. Entries marked `EXISTS` are in the
+tree today; everything else is the target picture, annotated with the milestone that creates it.
+
 ```
-app/
-├─ service/
-│  ├─ BlockerAccessibilityService.kt   # entry point, event loop, throttling
-│  ├─ NodeSnapshot.kt                  # framework-free projection of the node tree
-│  ├─ ScreenMatcher.kt                 # node tree → MatchResult (pure, testable)
-│  ├─ ScreenStateReceiver.kt           # ACTION_SCREEN_OFF / ACTION_USER_PRESENT
-│  └─ OverlayController.kt             # WindowManager, warning chip + blocking overlay
-├─ rules/
-│  ├─ RuleRepository.kt                # remote fetch + cache + bundled fallback
-│  ├─ RuleSet.kt                       # data model (RuleSet / Target / Matcher / Exclusion)
-│  └─ assets/rules.json                # fallback copy, bundled into the APK
-├─ budget/
-│  ├─ BudgetTracker.kt                 # time accounting, pause logic (pure, testable)
-│  ├─ BudgetStore.kt                   # DataStore persistence
-│  └─ DayBoundary.kt                   # 04:00 reset, timezone- and DST-safe
-├─ ui/
-│  ├─ home/                            # status, on/off, remaining budget today
-│  ├─ settings/                        # per-target budgets, reset time, rule update
-│  └─ onboarding/                      # permission flow incl. restricted-settings guidance
-└─ di/                                 # Hilt modules
+app/src/main/java/uk/staatsprojekte/blockreels/
+├─ BlockReelsApplication.kt            # EXISTS - @HiltAndroidApp, graph root
+├─ MainActivity.kt                     # EXISTS - placeholder, replaced in M3
+├─ di/
+│  └─ AppModule.kt                     # EXISTS - provides java.time.Clock
+├─ service/                            # M1/M2
+│  ├─ BlockerAccessibilityService.kt   #   entry point, event loop, throttling
+│  ├─ NodeSnapshot.kt                  #   framework-free projection of the node tree
+│  ├─ ScreenMatcher.kt                 #   node tree -> MatchResult (pure, testable)
+│  ├─ ScreenStateReceiver.kt           #   ACTION_SCREEN_OFF / ACTION_USER_PRESENT
+│  └─ OverlayController.kt             #   WindowManager, warning chip + blocking overlay
+├─ rules/                              # M1 model and bundled loader, M4 the rest
+│  ├─ RuleRepository.kt                #   remote fetch + cache + bundled fallback
+│  └─ RuleSet.kt                       #   data model (RuleSet / Target / Matcher / Exclusion)
+├─ budget/                             # M2
+│  ├─ BudgetTracker.kt                 #   time accounting, pause logic (pure, testable)
+│  ├─ BudgetStore.kt                   #   DataStore persistence
+│  └─ DayBoundary.kt                   #   04:00 reset, timezone- and DST-safe
+└─ ui/                                 # M3
+   ├─ home/                            #   status, on/off, remaining budget today
+   ├─ settings/                        #   per-target budgets, reset time, rule update
+   └─ onboarding/                      #   permission flow incl. restricted-settings guidance
+
+app/src/main/assets/rules.json         # M1 - fallback copy, byte-identical to the repo root
+app/src/test/resources/fixtures/       # M1 - recorded uiautomator dumps for ScreenMatcher
 ```
 
-`app/` is a single Gradle module. Splitting the pure core into its own Kotlin-only module is
-tempting and would enforce the no-framework rule at compile time, but for a project this size one
-module with a disciplined package boundary is enough. Revisit with an ADR if the build gets slow.
+`app/` stays a single Gradle module. Splitting the pure core into its own Kotlin-only module is
+tempting and would enforce the no-framework rule at compile time rather than by review, but for a
+project this size one module with a disciplined package boundary is enough. Revisit with an ADR if
+the build gets slow.
+
+### How to change this document
+
+It is binding, like the ADRs. If the structure above is wrong, fix the document in the same
+commit as the code. If a *decision* in it turns out to be wrong — the module boundary, the purity
+rule, the persistence choice — that needs an [ADR](adr/README.md) superseding the old one, not an
+edit. `./gradlew verifyAdrIndex` keeps the ADR index honest; nothing but review keeps this file
+honest.
 
 ## Data flow
 

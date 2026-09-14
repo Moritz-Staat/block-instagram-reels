@@ -118,15 +118,89 @@ val verifyAdrIndex by tasks.registering(VerifyAdrIndexTask::class) {
     adrDirectory.set(layout.projectDirectory.dir("docs/adr"))
 }
 
+
+// Enforces the single most important rule in the codebase (AGENTS.md): the classes carrying the
+// real logic must not touch the Android framework, because that is what keeps them unit-testable
+// without Robolectric, an emulator or a device. Review is not a reliable gate for this - one
+// convenient `import android.content.Context` is very easy to wave through.
+//
+// Reports how many files it actually checked, so "passes because the files do not exist yet" is
+// visible rather than silent.
+abstract class VerifyPureCoreTask : DefaultTask() {
+
+    @get:InputDirectory
+    abstract val sourceRoot: DirectoryProperty
+
+    @get:Input
+    abstract val pureFiles: ListProperty<String>
+
+    @TaskAction
+    fun verify() {
+        val root = sourceRoot.get().asFile
+        val violations = mutableListOf<String>()
+        val missing = mutableListOf<String>()
+        var checked = 0
+
+        pureFiles.get().forEach { relative ->
+            val file = File(root, relative)
+            if (!file.exists()) {
+                missing += relative
+                return@forEach
+            }
+            checked++
+            file.readLines().forEachIndexed { index, line ->
+                val trimmed = line.trim()
+                if (FORBIDDEN_PREFIXES.any { trimmed.startsWith(it) }) {
+                    violations += relative + ":" + (index + 1) + "  " + trimmed
+                }
+            }
+        }
+
+        if (violations.isNotEmpty()) {
+            throw GradleException(
+                violations.joinToString(
+                    prefix = "The pure core must not depend on the Android framework:" + LINE + "  - ",
+                    separator = LINE + "  - ",
+                    postfix = LINE + LINE +
+                        "Move the framework-facing part into a shell around it. " +
+                        "See docs/ARCHITECTURE.md and AGENTS.md."
+                )
+            )
+        }
+        val note = if (missing.isEmpty()) "." else ", not written yet: " + missing.joinToString()
+        logger.lifecycle("Pure core OK: " + checked + " file(s) checked" + note)
+    }
+
+    private companion object {
+        val FORBIDDEN_PREFIXES = listOf("import android.", "import androidx.")
+        val LINE = System.lineSeparator()
+    }
+}
+
+val verifyPureCore by tasks.registering(VerifyPureCoreTask::class) {
+    group = "verification"
+    description = "Fails if the framework-free core imports anything from android or androidx"
+    sourceRoot.set(layout.projectDirectory.dir("app/src/main/java/uk/staatsprojekte/blockreels"))
+    pureFiles.set(
+        listOf(
+            "service/ScreenMatcher.kt",
+            "service/NodeSnapshot.kt",
+            "budget/BudgetTracker.kt",
+            "budget/DayBoundary.kt"
+        )
+    )
+}
+
 // Single entry point for every static-analysis gate, so a human and CI run exactly the same
 // thing. Android Lint is contributed by :app, which is where the Android plugin lives.
 tasks.register("staticAnalysis") {
     group = "verification"
-    description = "Runs ktlint, detekt, Android Lint and the ADR index check."
+    description = "Runs ktlint, detekt, Android Lint, the ADR index check and the pure-core check."
     dependsOn(
         tasks.named("ktlintCheck"),
         tasks.named("detekt"),
         verifyAdrIndex,
+        verifyPureCore,
         project(":app").tasks.named("ktlintCheck"),
         project(":app").tasks.named("detekt"),
         project(":app").tasks.named("lintDebug")
