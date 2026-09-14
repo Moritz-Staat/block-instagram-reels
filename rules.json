@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-09-14T00:00:00Z",
+  "_comment": "CANDIDATE SELECTORS - UNVERIFIED. Every value below was written from documentation and memory, not read off a real device. Verify with `adb shell uiautomator dump` before trusting any of it - see docs/FINDING_SELECTORS.md. Format is specified in docs/RULES_FORMAT.md.",
+  "targets": [
+    {
+      "id": "instagram_reels",
+      "packageName": "com.instagram.android",
+      "displayName": "Instagram Reels",
+      "defaultBudgetMinutes": 5,
+      "matchers": [
+        { "type": "viewId", "value": "clips_viewer_view_pager", "confidence": "high" },
+        { "type": "viewIdPrefix", "value": "clips_", "confidence": "medium" },
+        { "type": "contentDescription", "value": "Reels", "exact": true, "confidence": "low" }
+      ],
+      "exclusions": [
+        { "type": "viewId", "value": "direct_thread_container" }
+      ]
+    }
+  ]
+}
