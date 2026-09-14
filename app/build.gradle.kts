@@ -70,7 +70,13 @@ android {
             // expected, which trains you to ignore lint output.
             "GradleDependency",
             "NewerVersionAvailable",
-            "AndroidGradlePluginVersion"
+            "AndroidGradlePluginVersion",
+            // targetSdk 36 is a deliberate project decision, not an oversight. Raising it opts
+            // the app into new runtime behaviour and needs its own issue and on-device
+            // verification - see #51, which explicitly keeps targetSdk at 36 while moving
+            // compileSdk. Note this only fires where the newer platform is known to Lint, so it
+            // can be green locally and red in CI.
+            "OldTargetApi"
         )
     }
 
