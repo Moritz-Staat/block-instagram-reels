@@ -36,7 +36,7 @@ class ToolchainWiringTest {
     fun `jupiter runs on the junit platform`() {
         // If testDebugUnitTest is still on JUnit4 this test is silently never executed, so the
         // assertion matters less than the fact that the class is picked up at all.
-        assertThat(2 + 2).isEqualTo(4)
+        assertThat(2 + 2).isEqualTo(5)
     }
 
     @Test
