@@ -185,7 +185,9 @@ val verifyPureCore by tasks.registering(VerifyPureCoreTask::class) {
             "service/ScreenMatcher.kt",
             "service/NodeSnapshot.kt",
             "budget/BudgetTracker.kt",
-            "budget/DayBoundary.kt"
+            "budget/DayBoundary.kt",
+            "rules/RuleSet.kt",
+            "rules/RuleSetParser.kt"
         )
     )
 }
